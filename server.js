@@ -31,7 +31,7 @@ const PORT = 5000;
 // Middleware configuration
 app.use(
   cors({
-    origin: "https://e-commerce-website-server-8pi4.onrender.com",
+    origin: "https://e-commerce-website-by-sobanimran.netlify.app/",
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
