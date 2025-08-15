@@ -101,5 +101,9 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
+
+console.log("Final GitHub test push");
+
+
 // Start server
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
