@@ -51,6 +51,14 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }).single("file");
 
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
+
+
 app.post("/api/admin/products/upload-image", (req, res) => {
   upload(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
@@ -91,6 +99,10 @@ app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
+
+const compression = require("compression");
+app.use(compression());
+
 
 // Start server
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
