@@ -1,0 +1,108 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
+
+// Import routes
+const authRouter = require("./routes/auth/auth-routes");
+const adminProductsRouter = require("./routes/admin/products-routes");
+const adminOrderRouter = require("./routes/admin/order-routes");
+const shopProductsRouter = require("./routes/shop/products-routes");
+const shopCartRouter = require("./routes/shop/cart-routes");
+const shopAddressRouter = require("./routes/shop/address-routes");
+const shopOrderRouter = require("./routes/shop/order-routes");
+const shopSearchRouter = require("./routes/shop/search-routes");
+const shopReviewRouter = require("./routes/shop/review-routes");
+const commonFeatureRouter = require("./routes/common/feature-routes");
+
+// Connect to MongoDB
+mongoose
+  .connect("mongodb+srv://sobanimran:sobanimran@cluster0.lmnle.mongodb.net/")
+  .then(() => console.log("MongoDB connected"))
+  .catch((error) => console.log(error));
+
+const app = express();
+const PORT = 5000;
+
+// ✅ CORS Configuration
+app.use(
+  cors({
+    origin: "https://e-commerce-website-by-sobanimran.netlify.app",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    credentials: true, // ✅ allows cookies
+  })
+);
+
+// ✅ Middleware
+app.use(cookieParser());
+app.use(express.json());
+
+// ✅ Cloudinary Config
+cloudinary.config({
+  cloud_name: "dj6vkybkh",
+  api_key: "627836662775421",
+  api_secret: "quJmr411eVpuQ1zX_O5Cc3Ciu84",
+});
+
+// ✅ Multer for image upload
+const storage = multer.memoryStorage();
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }).single("file");
+
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
+
+
+app.post("/api/admin/products/upload-image", (req, res) => {
+  upload(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ success: false, message: err.message });
+    } else if (err) {
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    try {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "products" },
+        (error, result) => {
+          if (error) {
+            return res.status(500).json({ success: false, message: "Cloudinary upload error" });
+          }
+          return res.status(200).json({ success: true, result });
+        }
+      );
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } catch (error) {
+      return res.status(500).json({ success: false, message: "Error uploading to Cloudinary" });
+    }
+  });
+});
+
+// ✅ Routes
+app.use("/api/auth", authRouter);
+app.use("/api/admin/products", adminProductsRouter);
+app.use("/api/admin/orders", adminOrderRouter);
+app.use("/api/shop/products", shopProductsRouter);
+app.use("/api/shop/cart", shopCartRouter);
+app.use("/api/shop/address", shopAddressRouter);
+app.use("/api/shop/order", shopOrderRouter);
+app.use("/api/shop/search", shopSearchRouter);
+app.use("/api/shop/review", shopReviewRouter);
+app.use("/api/common/feature", commonFeatureRouter);
+
+const compression = require("compression");
+app.use(compression());
+
+
+// Start server
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
